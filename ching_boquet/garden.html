@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Valentines, Ching!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Quicksand:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #060510;
+            background-image: radial-gradient(ellipse at 50% 80%, #0d1a0f 0%, #060510 60%);
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        /* Title */
+        .title {
+            position: fixed; top: 25px; left: 50%; transform: translateX(-50%);
+            z-index: 100; text-align: center;
+            opacity: 0; animation: fadeIn 2s 4s ease-out forwards;
+        }
+        .title h1 {
+            font-family: 'Dancing Script', cursive;
+            color: #ff4081; font-size: 40px;
+            text-shadow: 0 0 30px rgba(255,64,129,0.5);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(-15px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        /* Moon */
+        .moon {
+            position: fixed; top: 50px; right: 70px;
+            width: 70px; height: 70px; border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #fff8e1, #ffe0b2, #ffcc80);
+            box-shadow: 0 0 20px rgba(255,236,179,0.4), 0 0 60px rgba(255,236,179,0.15);
+            opacity: 0; animation: moonRise 3s 1s ease-out forwards;
+        }
+        @keyframes moonRise {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 0.85; transform: translateY(0); }
+        }
+
+        /* Stars */
+        .stars { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+        .star {
+            position: absolute; background: white; border-radius: 50%;
+            animation: twinkle 2s infinite alternate;
+        }
+        @keyframes twinkle {
+            from { opacity: 0.15; transform: scale(1); }
+            to { opacity: 0.9; transform: scale(1.2); }
+        }
+
+        /* Garden canvas */
+        .garden {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 100%;
+            z-index: 10; pointer-events: none;
+            transition: z-index 0s;
+        }
+        .garden.show-flower {
+            z-index: 501; /* Above overlay backdrop, below card */
+        }
+        .garden svg { width: 100%; height: 100%; }
+
+        /* Flower plant group */
+        .plant { pointer-events: all; cursor: pointer; transition: opacity 0.5s ease, filter 0.5s ease; }
+        .plant:hover { filter: brightness(1.2) drop-shadow(0 0 12px rgba(255,64,129,0.3)); }
+
+        /* When a card is open, dim all plants except the highlighted one */
+        .garden.show-flower .plant {
+            opacity: 0.08;
+            filter: blur(2px);
+            pointer-events: none;
+        }
+        .garden.show-flower .plant.highlighted {
+            opacity: 1;
+            filter: brightness(1.15) drop-shadow(0 0 18px rgba(255,64,129,0.4));
+            pointer-events: none;
+        }
+
+        /* Stem drawing animation */
+        .stem-path {
+            stroke-dasharray: 500;
+            stroke-dashoffset: 500;
+            animation: drawStem 2.5s ease-out forwards;
+        }
+        @keyframes drawStem {
+            to { stroke-dashoffset: 0; }
+        }
+
+        /* Leaf animation */
+        .leaf-shape {
+            opacity: 0;
+            transform-origin: center;
+            animation: leafAppear 0.6s ease-out forwards;
+        }
+        @keyframes leafAppear {
+            from { opacity: 0; transform: scale(0); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Flower bloom */
+        .flower-head {
+            opacity: 0;
+            transform-origin: center;
+            animation: bloomFlower 1s ease-out forwards;
+        }
+        @keyframes bloomFlower {
+            0% { opacity: 0; transform: scale(0) rotate(-15deg); }
+            100% { opacity: 1; transform: scale(1) rotate(0); }
+        }
+
+        /* Gentle sway */
+        .sway {
+            transform-origin: bottom center;
+            animation: sway 4s ease-in-out infinite;
+        }
+        @keyframes sway {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(1.5deg); }
+            75% { transform: rotate(-1.5deg); }
+        }
+
+        /* Glow effect */
+        .flower-glow {
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+        @keyframes glow {
+            from { opacity: 0.3; }
+            to { opacity: 0.7; }
+        }
+
+        /* Ground grass base */
+        .ground-gradient {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            height: 60px; z-index: 9; pointer-events: none;
+            background: linear-gradient(to top, #0a1a08, #0d200a, transparent);
+        }
+
+        /* Labels */
+        .plant-label {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 11px; letter-spacing: 3px;
+            fill: rgba(255,183,197,0.7);
+            text-anchor: middle;
+        }
+
+        /* Fireflies */
+        .firefly {
+            position: fixed; width: 4px; height: 4px; border-radius: 50%;
+            background: #fdd835;
+            box-shadow: 0 0 6px 2px rgba(253,216,53,0.6), 0 0 12px 4px rgba(253,216,53,0.2);
+            opacity: 0; z-index: 50; pointer-events: none;
+            animation: fireflyMove linear infinite, fireflyGlow 2s ease-in-out infinite alternate;
+        }
+        @keyframes fireflyMove {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(30px, -50px); }
+            50% { transform: translate(-20px, -80px); }
+            75% { transform: translate(40px, -30px); }
+            100% { transform: translate(0, 0); }
+        }
+        @keyframes fireflyGlow { from { opacity: 0; } to { opacity: 0.85; } }
+
+        /* Hearts */
+        .floating-heart {
+            position: fixed; z-index: 50; pointer-events: none; opacity: 0;
+            color: #ff4081; font-size: 16px;
+            animation: floatHeart linear forwards;
+        }
+        @keyframes floatHeart {
+            0% { opacity: 0; transform: translateY(0) scale(0.5); }
+            20% { opacity: 0.7; }
+            80% { opacity: 0.5; }
+            100% { opacity: 0; transform: translateY(-250px) scale(1.1) rotate(20deg); }
+        }
+
+        /* Fireworks canvas */
+        #fireworksCanvas {
+            position: fixed; inset: 0;
+            z-index: 5; pointer-events: none;
+        }
+
+        /* ============ FLOWER CARD OVERLAY ============ */
+        .card-overlay {
+            position: fixed; inset: 0; z-index: 500;
+            background: rgba(3,2,10,0);
+            backdrop-filter: blur(0px);
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 4%;
+            pointer-events: none;
+            transition: background 0.6s ease, backdrop-filter 0.6s ease;
+        }
+        .card-overlay.active {
+            background: rgba(3,2,10,0.7);
+            backdrop-filter: blur(6px);
+            pointer-events: all;
+        }
+
+        /* Ribbon SVG */
+        .ribbon-svg {
+            position: fixed; inset: 0; z-index: 501;
+            width: 100%; height: 100%;
+            pointer-events: none;
+        }
+        .ribbon-path {
+            fill: none;
+            stroke-width: 3;
+            stroke-linecap: round;
+            opacity: 0;
+            transition: opacity 0.5s 0.1s ease;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+        .ribbon-path.show { opacity: 1; }
+        .ribbon-edge {
+            fill: none;
+            stroke-width: 5;
+            stroke-linecap: round;
+            opacity: 0;
+            transition: opacity 0.5s 0.1s ease;
+        }
+        .ribbon-edge.show { opacity: 0.2; }
+        .stem-bow-path {
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            opacity: 0;
+            transition: opacity 0.4s 0.15s ease;
+        }
+        .stem-bow-path.show { opacity: 0.85; }
+        .stem-tails-path {
+            fill: none;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            opacity: 0;
+            transition: opacity 0.4s 0.25s ease;
+        }
+        .stem-tails-path.show { opacity: 0.65; }
+
+        /* Card flower icon */
+        .card-flower-icon {
+            position: absolute;
+            top: -18px;
+            right: 22px;
+            width: 50px;
+            height: 50px;
+            z-index: 10;
+            opacity: 0;
+            transform: scale(0) rotate(-20deg);
+            transition: all 0.5s 0.35s cubic-bezier(0.34,1.56,0.64,1);
+            filter: drop-shadow(0 3px 8px rgba(0,0,0,0.4));
+        }
+        .card-overlay.active .card-flower-icon {
+            opacity: 1;
+            transform: scale(1) rotate(5deg);
+        }
+        .flower-icon-group { display: none; }
+
+        /* Card */
+        .flower-card {
+            position: relative; z-index: 502;
+            width: 340px;
+            background: linear-gradient(145deg, rgba(18,12,30,0.95), rgba(10,8,20,0.98));
+            border-radius: 18px;
+            overflow: hidden;
+            transform: scale(0.7) translateY(40px);
+            opacity: 0;
+            transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s ease;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 30px rgba(255,64,129,0.08);
+            pointer-events: none;
+        }
+        .card-overlay.active .flower-card {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* Card top accent stripe */
+        .card-accent {
+            height: 4px; width: 100%;
+            transition: background 0.3s ease;
+        }
+
+        /* Polaroid frame */
+        .card-image-wrap {
+            display: flex; justify-content: center;
+            padding: 22px 28px 10px;
+        }
+        .polaroid {
+            background: #f5f2ed;
+            padding: 10px 10px 36px 10px;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.35), 0 1px 4px rgba(0,0,0,0.2);
+            transform: rotate(-1.5deg);
+            position: relative;
+            width: 240px;
+            transition: transform 0.4s ease;
+        }
+        .card-overlay.active .polaroid { transform: rotate(-1.5deg) scale(1); }
+        .polaroid:hover { transform: rotate(0deg) scale(1.03); }
+        .polaroid-photo {
+            width: 100%; height: 200px;
+            background: #1a1520;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; position: relative;
+        }
+        .polaroid-photo img {
+            width: 100%; height: 100%; object-fit: cover;
+            object-position: center 20%;
+            display: none;
+        }
+        .polaroid-photo .placeholder-icon {
+            color: rgba(255,255,255,0.15); font-size: 44px;
+            display: flex; flex-direction: column; align-items: center; gap: 6px;
+        }
+        .polaroid-photo .placeholder-icon span {
+            font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+            font-family: 'Quicksand', sans-serif;
+            color: rgba(255,255,255,0.2);
+        }
+        .polaroid-caption {
+            text-align: center; padding-top: 8px;
+            font-family: 'Dancing Script', cursive;
+            font-size: 14px; color: #6b5b6e;
+            letter-spacing: 1px;
+        }
+        .polaroid-footer {
+            position: absolute; bottom: 6px; right: 10px;
+            font-family: 'Quicksand', sans-serif;
+            font-size: 9px; color: #5a4a5e;
+            letter-spacing: 0.3px;
+            font-weight: 500;
+        }
+        /* Tape on polaroid */
+        .polaroid-tape {
+            position: absolute; top: -8px; left: 50%; transform: translateX(-50%) rotate(2deg);
+            width: 60px; height: 18px;
+            background: rgba(255,255,220,0.45);
+            border: 1px solid rgba(200,190,160,0.2);
+            border-radius: 1px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+        }
+
+        /* Card body */
+        .card-body { padding: 24px 28px 20px; }
+        .card-flower-name {
+            font-family: 'Dancing Script', cursive;
+            font-size: 30px; margin-bottom: 4px;
+            transition: color 0.3s ease;
+        }
+        .card-meaning-label {
+            font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
+            color: rgba(255,255,255,0.35); margin-bottom: 10px;
+        }
+        .card-meaning {
+            font-size: 14px; line-height: 1.7;
+            color: rgba(255,255,255,0.75);
+            margin-bottom: 20px;
+        }
+
+        /* Bible verse section */
+        .card-verse-container {
+            border-top: 1px solid rgba(255,255,255,0.06);
+            padding-top: 16px;
+        }
+        .card-verse {
+            font-style: italic; font-size: 13px; line-height: 1.7;
+            color: rgba(255,183,197,0.8);
+            margin-bottom: 6px;
+        }
+        .card-verse-ref {
+            font-size: 11px; letter-spacing: 1px;
+            color: rgba(255,183,197,0.5);
+            text-align: right;
+        }
+
+        /* Close button */
+        .card-close {
+            position: absolute; top: 12px; right: 14px;
+            width: 30px; height: 30px; border: none;
+            background: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.6);
+            border-radius: 50%; cursor: pointer;
+            font-size: 16px; display: flex;
+            align-items: center; justify-content: center;
+            transition: all 0.2s ease; z-index: 10;
+            backdrop-filter: blur(4px);
+        }
+        .card-close:hover {
+            background: rgba(255,64,129,0.3);
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        /* Ribbon bow at card edge */
+        .ribbon-bow {
+            position: absolute; left: -14px; top: 50%;
+            transform: translateY(-50%);
+            width: 28px; height: 28px;
+            opacity: 0;
+            transition: opacity 0.4s 0.3s ease;
+        }
+        .card-overlay.active .ribbon-bow { opacity: 1; }
+    </style>
+</head>
+<body>
+
+<div class="title"><h1>Happy Valentines, Ching!</h1></div>
+<canvas id="fireworksCanvas"></canvas>
+<div class="moon"></div>
+<div class="stars" id="stars"></div>
+<div class="ground-gradient"></div>
+
+<div class="garden">
+<svg viewBox="0 0 1400 700" preserveAspectRatio="xMidYMax meet">
+<defs>
+    <!-- Glow filters -->
+    <filter id="glow-yellow"><feGaussianBlur stdDeviation="4" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="glow-pink"><feGaussianBlur stdDeviation="3" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="glow-red"><feGaussianBlur stdDeviation="3" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="glow-white"><feGaussianBlur stdDeviation="5" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+
+    <!-- Leaf gradient -->
+    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#1b5e20"/>
+        <stop offset="50%" stop-color="#2e7d32"/>
+        <stop offset="100%" stop-color="#43a047"/>
+    </linearGradient>
+    <linearGradient id="leafGradLight" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#2e7d32"/>
+        <stop offset="100%" stop-color="#66bb6a"/>
+    </linearGradient>
+    <linearGradient id="stemGrad" x1="0" y1="1" x2="0" y2="0">
+        <stop offset="0%" stop-color="#1b5e20"/>
+        <stop offset="100%" stop-color="#388e3c"/>
+    </linearGradient>
+</defs>
+
+<!-- ==================== GRASS at bottom ==================== -->
+<g id="grass-group"></g>
+
+<!-- ==================== BASE LEAVES (ground cluster) ==================== -->
+<g class="sway" style="transform-origin: 700px 700px;">
+    <!-- Cluster of base leaves at ground level for each plant -->
+
+    <!-- Sunflower base leaves -->
+    <ellipse cx="180" cy="670" rx="40" ry="12" fill="url(#leafGrad)" transform="rotate(-35,180,670)" opacity="0.9" class="leaf-shape" style="animation-delay:1s"/>
+    <ellipse cx="220" cy="675" rx="35" ry="10" fill="url(#leafGradLight)" transform="rotate(20,220,675)" opacity="0.8" class="leaf-shape" style="animation-delay:1.2s"/>
+    <ellipse cx="160" cy="678" rx="30" ry="9" fill="url(#leafGrad)" transform="rotate(-55,160,678)" opacity="0.7" class="leaf-shape" style="animation-delay:1.4s"/>
+
+    <!-- Lily base leaves -->
+    <ellipse cx="430" cy="672" rx="38" ry="11" fill="url(#leafGrad)" transform="rotate(-40,430,672)" opacity="0.9" class="leaf-shape" style="animation-delay:1.1s"/>
+    <ellipse cx="470" cy="676" rx="32" ry="10" fill="url(#leafGradLight)" transform="rotate(25,470,676)" opacity="0.8" class="leaf-shape" style="animation-delay:1.3s"/>
+    <ellipse cx="410" cy="680" rx="28" ry="8" fill="url(#leafGrad)" transform="rotate(-60,410,680)" opacity="0.7" class="leaf-shape" style="animation-delay:1.5s"/>
+
+    <!-- Poppy base leaves -->
+    <ellipse cx="680" cy="670" rx="36" ry="11" fill="url(#leafGrad)" transform="rotate(-30,680,670)" opacity="0.9" class="leaf-shape" style="animation-delay:1s"/>
+    <ellipse cx="720" cy="674" rx="30" ry="9" fill="url(#leafGradLight)" transform="rotate(30,720,674)" opacity="0.8" class="leaf-shape" style="animation-delay:1.2s"/>
+    <ellipse cx="660" cy="678" rx="25" ry="8" fill="url(#leafGrad)" transform="rotate(-50,660,678)" opacity="0.7" class="leaf-shape" style="animation-delay:1.4s"/>
+
+    <!-- Tulip base leaves -->
+    <ellipse cx="940" cy="672" rx="42" ry="10" fill="url(#leafGrad)" transform="rotate(-25,940,672)" opacity="0.9" class="leaf-shape" style="animation-delay:1.1s"/>
+    <ellipse cx="980" cy="676" rx="36" ry="11" fill="url(#leafGradLight)" transform="rotate(20,980,676)" opacity="0.8" class="leaf-shape" style="animation-delay:1.3s"/>
+    <ellipse cx="920" cy="680" rx="30" ry="8" fill="url(#leafGrad)" transform="rotate(-55,920,680)" opacity="0.7" class="leaf-shape" style="animation-delay:1.5s"/>
+
+    <!-- Rose base leaves -->
+    <ellipse cx="1190" cy="670" rx="38" ry="11" fill="url(#leafGrad)" transform="rotate(-30,1190,670)" opacity="0.9" class="leaf-shape" style="animation-delay:1s"/>
+    <ellipse cx="1230" cy="675" rx="32" ry="10" fill="url(#leafGradLight)" transform="rotate(25,1230,675)" opacity="0.8" class="leaf-shape" style="animation-delay:1.2s"/>
+    <ellipse cx="1170" cy="678" rx="28" ry="9" fill="url(#leafGrad)" transform="rotate(-50,1170,678)" opacity="0.7" class="leaf-shape" style="animation-delay:1.4s"/>
+</g>
+
+<!-- ==================== 1. SUNFLOWER ==================== -->
+<g class="plant sway" data-flower="sunflower" data-tie-x="197" data-tie-y="480" style="animation-delay: 0.2s;">
+    <!-- Main stem (curved) -->
+    <path d="M200,680 C200,620 195,500 190,380 Q188,320 195,280" stroke="url(#stemGrad)" stroke-width="5" fill="none" stroke-linecap="round" class="stem-path" style="animation-delay:0.3s"/>
+    <!-- Secondary stem -->
+    <path d="M200,580 C215,540 230,480 225,420" stroke="url(#stemGrad)" stroke-width="4" fill="none" stroke-linecap="round" class="stem-path" style="animation-delay:0.6s"/>
+    <!-- Third stem (small bud) -->
+    <path d="M200,620 C175,580 165,520 170,470" stroke="url(#stemGrad)" stroke-width="3" fill="none" stroke-linecap="round" class="stem-path" style="animation-delay:0.9s"/>
+
+    <!-- Leaves along main stem -->
+    <ellipse cx="178" cy="500" rx="28" ry="10" fill="url(#leafGradLight)" transform="rotate(-35,178,500)" class="leaf-shape" style="animation-delay:2s"/>
+    <ellipse cx="212" cy="450" rx="25" ry="9" fill="url(#leafGrad)" transform="rotate(30,212,450)" class="leaf-shape" style="animation-delay:2.2s"/>
+    <ellipse cx="182" cy="380" rx="22" ry="8" fill="url(#leafGradLight)" transform="rotate(-25,182,380)" class="leaf-shape" style="animation-delay:2.4s"/>
+    <!-- Leaves along secondary stem -->
+    <ellipse cx="235" cy="470" rx="20" ry="7" fill="url(#leafGrad)" transform="rotate(35,235,470)" class="leaf-shape" style="animation-delay:2.3s"/>
+    <ellipse cx="210" cy="520" rx="22" ry="8" fill="url(#leafGradLight)" transform="rotate(-30,210,520)" class="leaf-shape" style="animation-delay:2.1s"/>
+
+    <!-- SUNFLOWER HEAD (main) -->
+    <g class="flower-head" style="animation-delay:2.8s;" filter="url(#glow-yellow)">
+        <!-- Petals -->
+        <ellipse cx="195" cy="255" rx="6" ry="22" fill="#ffcc00" transform="rotate(0,195,278)"/>
+        <ellipse cx="195" cy="255" rx="6" ry="22" fill="#ffd740" transform="rotate(30,195,278)"/>
+        <ellipse cx="195" cy="255" rx="6" ry="22" fill="#ffcc00" transform="rotate(60,195,278)"/>
+        <ellipse cx="195" cy="255" rx="6" ry="22" fill="#ffd740" transform="rotate(90,195,278)"/>
+        <ellipse cx="195" cy="255" rx="6" ry="22" fill="#ffcc00" transform="rotate(120,195,278)"/>
+        <ellipse cx="195" cy="255" rx="6" ry="22" fill="#ffd740" transform="rotate(150,195,278)"/>
+        <ellipse cx="195" cy="255" rx="6" ry="22" fill="#ffcc00" transform="rotate(180,195,278)"/>
+        <ellipse cx="195" cy="255" rx="6" ry="22" fill="#ffd740" transform="rotate(210,195,278)"/>
+        <ellipse cx="195" cy="255" rx="6" ry="22" fill="#ffcc00" transform="rotate(240,195,278)"/>
+        <ellipse cx="195" cy="255" rx="6" ry="22" fill="#ffd740" transform="rotate(270,195,278)"/>
+        <ellipse cx="195" cy="255" rx="6" ry="22" fill="#ffcc00" transform="rotate(300,195,278)"/>
+        <ellipse cx="195" cy="255" rx="6" ry="22" fill="#ffd740" transform="rotate(330,195,278)"/>
+        <!-- Center -->
+        <circle cx="195" cy="278" r="14" fill="#3e2723"/>
+        <circle cx="195" cy="278" r="11" fill="#4e342e" stroke="#5d4037" stroke-width="1" stroke-dasharray="2,2"/>
+    </g>
+    <!-- Small sunflower on secondary stem -->
+    <g class="flower-head" style="animation-delay:3.2s;" filter="url(#glow-yellow)">
+        <ellipse cx="225" cy="400" rx="4" ry="15" fill="#ffcc00" transform="rotate(0,225,415)"/>
+        <ellipse cx="225" cy="400" rx="4" ry="15" fill="#ffd740" transform="rotate(45,225,415)"/>
+        <ellipse cx="225" cy="400" rx="4" ry="15" fill="#ffcc00" transform="rotate(90,225,415)"/>
+        <ellipse cx="225" cy="400" rx="4" ry="15" fill="#ffd740" transform="rotate(135,225,415)"/>
+        <ellipse cx="225" cy="400" rx="4" ry="15" fill="#ffcc00" transform="rotate(180,225,415)"/>
+        <ellipse cx="225" cy="400" rx="4" ry="15" fill="#ffd740" transform="rotate(225,225,415)"/>
+        <ellipse cx="225" cy="400" rx="4" ry="15" fill="#ffcc00" transform="rotate(270,225,415)"/>
+        <ellipse cx="225" cy="400" rx="4" ry="15" fill="#ffd740" transform="rotate(315,225,415)"/>
+        <circle cx="225" cy="415" r="9" fill="#3e2723"/>
+    </g>
+    <!-- Bud on third stem -->
+    <g class="flower-head" style="animation-delay:3.5s;">
+        <ellipse cx="170" cy="462" rx="5" ry="10" fill="#a5d6a7"/>
+        <ellipse cx="170" cy="458" rx="3" ry="7" fill="#ffcc00" opacity="0.6"/>
+    </g>
+    <text x="200" y="698" class="plant-label">SUNFLOWER</text>
+</g>
+
+<!-- ==================== 2. LILY ==================== -->
+<g class="plant sway" data-flower="lily" data-tie-x="448" data-tie-y="480" style="animation-delay: 0.5s;">
+    <!-- Stems -->
+    <path d="M450,680 C448,610 442,500 445,380 Q448,330 455,290" stroke="url(#stemGrad)" stroke-width="4" fill="none" stroke-linecap="round" class="stem-path" style="animation-delay:0.5s"/>
+    <path d="M450,600 C468,550 480,490 475,420" stroke="url(#stemGrad)" stroke-width="3.5" fill="none" stroke-linecap="round" class="stem-path" style="animation-delay:0.8s"/>
+    <path d="M450,640 C430,590 420,530 425,480" stroke="url(#stemGrad)" stroke-width="3" fill="none" stroke-linecap="round" class="stem-path" style="animation-delay:1.1s"/>
+
+    <!-- Leaves -->
+    <ellipse cx="432" cy="520" rx="26" ry="9" fill="url(#leafGradLight)" transform="rotate(-40,432,520)" class="leaf-shape" style="animation-delay:2.1s"/>
+    <ellipse cx="465" cy="460" rx="24" ry="8" fill="url(#leafGrad)" transform="rotate(30,465,460)" class="leaf-shape" style="animation-delay:2.3s"/>
+    <ellipse cx="438" cy="390" rx="20" ry="7" fill="url(#leafGradLight)" transform="rotate(-28,438,390)" class="leaf-shape" style="animation-delay:2.5s"/>
+    <ellipse cx="485" cy="460" rx="18" ry="7" fill="url(#leafGrad)" transform="rotate(38,485,460)" class="leaf-shape" style="animation-delay:2.2s"/>
+
+    <!-- LILY HEAD (main) - elegant open petals -->
+    <g class="flower-head" style="animation-delay:3s;" filter="url(#glow-white)">
+        <ellipse cx="455" cy="262" rx="8" ry="28" fill="white" opacity="0.9" transform="rotate(-20,455,290)"/>
+        <ellipse cx="455" cy="262" rx="8" ry="28" fill="#fff0f5" opacity="0.85" transform="rotate(20,455,290)"/>
+        <ellipse cx="455" cy="262" rx="8" ry="28" fill="white" opacity="0.9" transform="rotate(-55,455,290)"/>
+        <ellipse cx="455" cy="262" rx="8" ry="28" fill="#fff0f5" opacity="0.85" transform="rotate(55,455,290)"/>
+        <ellipse cx="455" cy="268" rx="7" ry="24" fill="#ffebee" opacity="0.8" transform="rotate(-90,455,290)"/>
+        <ellipse cx="455" cy="268" rx="7" ry="24" fill="white" opacity="0.8" transform="rotate(90,455,290)"/>
+        <!-- Stamens -->
+        <line x1="455" y1="290" x2="452" y2="270" stroke="#c8e6c9" stroke-width="1"/>
+        <line x1="455" y1="290" x2="458" y2="272" stroke="#c8e6c9" stroke-width="1"/>
+        <line x1="455" y1="290" x2="449" y2="274" stroke="#c8e6c9" stroke-width="1"/>
+        <circle cx="452" cy="269" r="2" fill="#ffeb3b"/>
+        <circle cx="458" cy="271" r="2" fill="#ffeb3b"/>
+        <circle cx="449" cy="273" r="2" fill="#ffeb3b"/>
+    </g>
+    <!-- Small lily bud -->
+    <g class="flower-head" style="animation-delay:3.3s;" filter="url(#glow-white)">
+        <ellipse cx="475" cy="408" rx="5" ry="18" fill="white" opacity="0.8" transform="rotate(-10,475,418)"/>
+        <ellipse cx="475" cy="408" rx="5" ry="18" fill="#fff0f5" opacity="0.7" transform="rotate(15,475,418)"/>
+        <ellipse cx="475" cy="410" rx="4" ry="14" fill="white" opacity="0.7" transform="rotate(-35,475,418)"/>
+        <circle cx="475" cy="416" r="3" fill="#ffeb3b" opacity="0.6"/>
+    </g>
+    <!-- Bud -->
+    <g class="flower-head" style="animation-delay:3.6s;">
+        <ellipse cx="425" cy="472" rx="5" ry="11" fill="#a5d6a7"/>
+        <ellipse cx="425" cy="468" rx="3" ry="7" fill="white" opacity="0.5"/>
+    </g>
+    <text x="450" y="698" class="plant-label">LILY</text>
+</g>
+
+<!-- ==================== 3. POPPY ==================== -->
+<g class="plant sway" data-flower="poppy" data-tie-x="703" data-tie-y="480" style="animation-delay: 0.8s;">
+    <!-- Stems -->
+    <path d="M700,680 C698,620 695,510 700,400 Q703,350 710,310" stroke="url(#stemGrad)" stroke-width="4" fill="none" stroke-linecap="round" class="stem-path" style="animation-delay:0.4s"/>
+    <path d="M700,610 C718,560 728,500 722,440" stroke="url(#stemGrad)" stroke-width="3.5" fill="none" stroke-linecap="round" class="stem-path" style="animation-delay:0.7s"/>
+    <path d="M700,650 C680,600 672,540 678,490" stroke="url(#stemGrad)" stroke-width="3" fill="none" stroke-linecap="round" class="stem-path" style="animation-delay:1s"/>
+
+    <!-- Leaves -->
+    <ellipse cx="685" cy="530" rx="24" ry="9" fill="url(#leafGradLight)" transform="rotate(-38,685,530)" class="leaf-shape" style="animation-delay:2s"/>
+    <ellipse cx="715" cy="470" rx="22" ry="8" fill="url(#leafGrad)" transform="rotate(32,715,470)" class="leaf-shape" style="animation-delay:2.2s"/>
+    <ellipse cx="695" cy="400" rx="20" ry="7" fill="url(#leafGradLight)" transform="rotate(-30,695,400)" class="leaf-shape" style="animation-delay:2.4s"/>
+    <ellipse cx="730" cy="480" rx="18" ry="7" fill="url(#leafGrad)" transform="rotate(35,730,480)" class="leaf-shape" style="animation-delay:2.1s"/>
+
+    <!-- POPPY HEAD (main) - bold round petals -->
+    <g class="flower-head" style="animation-delay:2.9s;" filter="url(#glow-red)">
+        <ellipse cx="710" cy="285" rx="22" ry="20" fill="#e53935" opacity="0.9" transform="rotate(0,710,305)"/>
+        <ellipse cx="710" cy="285" rx="22" ry="20" fill="#f44336" opacity="0.85" transform="rotate(72,710,305)"/>
+        <ellipse cx="710" cy="285" rx="22" ry="20" fill="#e53935" opacity="0.9" transform="rotate(144,710,305)"/>
+        <ellipse cx="710" cy="285" rx="22" ry="20" fill="#f44336" opacity="0.85" transform="rotate(216,710,305)"/>
+        <ellipse cx="710" cy="285" rx="22" ry="20" fill="#e53935" opacity="0.9" transform="rotate(288,710,305)"/>
+        <!-- Dark center -->
+        <circle cx="710" cy="305" r="10" fill="#1a1a1a"/>
+        <circle cx="710" cy="305" r="7" fill="#2c2c2c" stroke="#333" stroke-width="0.5"/>
+    </g>
+    <!-- Small poppy -->
+    <g class="flower-head" style="animation-delay:3.3s;" filter="url(#glow-red)">
+        <ellipse cx="722" cy="420" rx="14" ry="13" fill="#ef5350" opacity="0.85" transform="rotate(0,722,432)"/>
+        <ellipse cx="722" cy="420" rx="14" ry="13" fill="#e53935" opacity="0.8" transform="rotate(90,722,432)"/>
+        <ellipse cx="722" cy="420" rx="14" ry="13" fill="#ef5350" opacity="0.85" transform="rotate(180,722,432)"/>
+        <ellipse cx="722" cy="420" rx="14" ry="13" fill="#e53935" opacity="0.8" transform="rotate(270,722,432)"/>
+        <circle cx="722" cy="432" r="6" fill="#1a1a1a"/>
+    </g>
+    <!-- Bud -->
+    <g class="flower-head" style="animation-delay:3.5s;">
+        <ellipse cx="678" cy="482" rx="5" ry="11" fill="#a5d6a7"/>
+        <ellipse cx="678" cy="478" rx="3" ry="7" fill="#ef5350" opacity="0.5"/>
+    </g>
+    <text x="700" y="698" class="plant-label">POPPY</text>
+</g>
+
+<!-- ==================== 4. TULIP ==================== -->
+<g class="plant sway" data-flower="tulip" data-tie-x="957" data-tie-y="480" style="animation-delay: 1.1s;">
+    <!-- Stems -->
+    <path d="M960,680 C958,615 952,510 955,400 Q958,345 965,300" stroke="url(#stemGrad)" stroke-width="5" fill="none" stroke-linecap="round" class="stem-path" style="animation-delay:0.5s"/>
+    <path d="M960,590 C978,540 988,470 982,400" stroke="url(#stemGrad)" stroke-width="4" fill="none" stroke-linecap="round" class="stem-path" style="animation-delay:0.8s"/>
+    <path d="M960,640 C940,590 930,520 935,460" stroke="url(#stemGrad)" stroke-width="3" fill="none" stroke-linecap="round" class="stem-path" style="animation-delay:1.1s"/>
+
+    <!-- Long tulip leaves -->
+    <path d="M960,670 C940,600 920,530 925,480" stroke="url(#leafGrad)" stroke-width="0" fill="url(#leafGrad)" d="M960,670 Q930,580 928,500 Q935,500 960,670" class="leaf-shape" style="animation-delay:2s"/>
+    <ellipse cx="942" cy="530" rx="28" ry="9" fill="url(#leafGradLight)" transform="rotate(-35,942,530)" class="leaf-shape" style="animation-delay:2s"/>
+    <ellipse cx="975" cy="470" rx="26" ry="8" fill="url(#leafGrad)" transform="rotate(28,975,470)" class="leaf-shape" style="animation-delay:2.2s"/>
+    <ellipse cx="948" cy="400" rx="22" ry="7" fill="url(#leafGradLight)" transform="rotate(-25,948,400)" class="leaf-shape" style="animation-delay:2.4s"/>
+    <ellipse cx="990" cy="430" rx="20" ry="7" fill="url(#leafGrad)" transform="rotate(32,990,430)" class="leaf-shape" style="animation-delay:2.1s"/>
+
+    <!-- TULIP HEAD (main) - cup shape -->
+    <g class="flower-head" style="animation-delay:3s;" filter="url(#glow-pink)">
+        <!-- Outer petals -->
+        <ellipse cx="955" cy="278" rx="14" ry="28" fill="#f06292" transform="rotate(-12,965,298)"/>
+        <ellipse cx="975" cy="278" rx="14" ry="28" fill="#ec407a" transform="rotate(12,965,298)"/>
+        <!-- Inner petal -->
+        <ellipse cx="965" cy="280" rx="12" ry="24" fill="#f48fb1" transform="rotate(0,965,298)"/>
+        <!-- Highlight -->
+        <ellipse cx="965" cy="285" rx="6" ry="12" fill="#f8bbd0" opacity="0.5"/>
+    </g>
+    <!-- Small tulip -->
+    <g class="flower-head" style="animation-delay:3.4s;" filter="url(#glow-pink)">
+        <ellipse cx="978" cy="383" rx="9" ry="18" fill="#f06292" transform="rotate(-10,982,396)"/>
+        <ellipse cx="988" cy="383" rx="9" ry="18" fill="#ec407a" transform="rotate(10,982,396)"/>
+        <ellipse cx="983" cy="385" rx="7" ry="15" fill="#f48fb1"/>
+    </g>
+    <!-- Bud -->
+    <g class="flower-head" style="animation-delay:3.6s;">
+        <ellipse cx="935" cy="452" rx="5" ry="12" fill="#a5d6a7"/>
+        <ellipse cx="935" cy="448" rx="3" ry="8" fill="#f06292" opacity="0.5"/>
+    </g>
+    <text x="960" y="698" class="plant-label">TULIP</text>
+</g>
+
+<!-- ==================== 5. ROSE ==================== -->
+<g class="plant sway" data-flower="rose" data-tie-x="1212" data-tie-y="480" style="animation-delay: 0.3s;">
+    <!-- Stems -->
+    <path d="M1210,680 C1208,610 1205,500 1210,390 Q1213,340 1218,300" stroke="url(#stemGrad)" stroke-width="5" fill="none" stroke-linecap="round" class="stem-path" style="animation-delay:0.6s"/>
+    <path d="M1210,580 C1230,530 1240,460 1235,390" stroke="url(#stemGrad)" stroke-width="4" fill="none" stroke-linecap="round" class="stem-path" style="animation-delay:0.9s"/>
+    <path d="M1210,630 C1190,580 1182,510 1188,450" stroke="url(#stemGrad)" stroke-width="3" fill="none" stroke-linecap="round" class="stem-path" style="animation-delay:1.2s"/>
+
+    <!-- Leaves -->
+    <ellipse cx="1195" cy="520" rx="26" ry="9" fill="url(#leafGradLight)" transform="rotate(-38,1195,520)" class="leaf-shape" style="animation-delay:2.1s"/>
+    <ellipse cx="1228" cy="460" rx="24" ry="8" fill="url(#leafGrad)" transform="rotate(30,1228,460)" class="leaf-shape" style="animation-delay:2.3s"/>
+    <ellipse cx="1200" cy="400" rx="20" ry="7" fill="url(#leafGradLight)" transform="rotate(-28,1200,400)" class="leaf-shape" style="animation-delay:2.5s"/>
+    <ellipse cx="1245" cy="430" rx="18" ry="7" fill="url(#leafGrad)" transform="rotate(35,1245,430)" class="leaf-shape" style="animation-delay:2.2s"/>
+    <!-- Rose thorns (small marks on stem) -->
+    <line x1="1207" y1="450" x2="1200" y2="445" stroke="#2e7d32" stroke-width="2" stroke-linecap="round" class="leaf-shape" style="animation-delay:2s"/>
+    <line x1="1213" y1="500" x2="1220" y2="495" stroke="#2e7d32" stroke-width="2" stroke-linecap="round" class="leaf-shape" style="animation-delay:2.1s"/>
+
+    <!-- ROSE HEAD (main) - layered petals -->
+    <g class="flower-head" style="animation-delay:3s;" filter="url(#glow-red)">
+        <!-- Outer petals -->
+        <ellipse cx="1218" cy="275" rx="16" ry="14" fill="#c62828" transform="rotate(0,1218,290)"/>
+        <ellipse cx="1218" cy="275" rx="16" ry="14" fill="#d32f2f" transform="rotate(60,1218,290)"/>
+        <ellipse cx="1218" cy="275" rx="16" ry="14" fill="#c62828" transform="rotate(120,1218,290)"/>
+        <ellipse cx="1218" cy="275" rx="16" ry="14" fill="#d32f2f" transform="rotate(180,1218,290)"/>
+        <ellipse cx="1218" cy="275" rx="16" ry="14" fill="#c62828" transform="rotate(240,1218,290)"/>
+        <ellipse cx="1218" cy="275" rx="16" ry="14" fill="#d32f2f" transform="rotate(300,1218,290)"/>
+        <!-- Inner petals -->
+        <ellipse cx="1218" cy="281" rx="10" ry="9" fill="#e53935" transform="rotate(30,1218,290)"/>
+        <ellipse cx="1218" cy="281" rx="10" ry="9" fill="#ef5350" transform="rotate(90,1218,290)"/>
+        <ellipse cx="1218" cy="281" rx="10" ry="9" fill="#e53935" transform="rotate(150,1218,290)"/>
+        <ellipse cx="1218" cy="281" rx="10" ry="9" fill="#ef5350" transform="rotate(210,1218,290)"/>
+        <!-- Center spiral -->
+        <circle cx="1218" cy="290" r="5" fill="#b71c1c"/>
+    </g>
+    <!-- Small rose -->
+    <g class="flower-head" style="animation-delay:3.4s;" filter="url(#glow-red)">
+        <ellipse cx="1235" cy="372" rx="10" ry="9" fill="#c62828" transform="rotate(0,1235,382)"/>
+        <ellipse cx="1235" cy="372" rx="10" ry="9" fill="#d32f2f" transform="rotate(72,1235,382)"/>
+        <ellipse cx="1235" cy="372" rx="10" ry="9" fill="#c62828" transform="rotate(144,1235,382)"/>
+        <ellipse cx="1235" cy="372" rx="10" ry="9" fill="#d32f2f" transform="rotate(216,1235,382)"/>
+        <ellipse cx="1235" cy="372" rx="10" ry="9" fill="#c62828" transform="rotate(288,1235,382)"/>
+        <circle cx="1235" cy="382" r="4" fill="#b71c1c"/>
+    </g>
+    <!-- Bud -->
+    <g class="flower-head" style="animation-delay:3.7s;">
+        <ellipse cx="1188" cy="442" rx="5" ry="12" fill="#a5d6a7"/>
+        <ellipse cx="1188" cy="438" rx="3" ry="8" fill="#c62828" opacity="0.5"/>
+    </g>
+    <text x="1210" y="698" class="plant-label">ROSE</text>
+</g>
+
+</svg>
+</div>
+
+<!-- ============ FLOWER CARD OVERLAY ============ -->
+<div class="card-overlay" id="cardOverlay">
+    <svg class="ribbon-svg" id="ribbonSvg" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <defs>
+            <linearGradient id="ribbonGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#ff4081" id="ribbonColor1"/>
+                <stop offset="100%" stop-color="#ff80ab" id="ribbonColor2"/>
+            </linearGradient>
+        </defs>
+        <path class="ribbon-edge" id="ribbonEdge" stroke="rgba(255,255,255,0.2)"/>
+        <path class="ribbon-path" id="ribbonPath" stroke="url(#ribbonGrad)"/>
+        <path class="stem-bow-path" id="stemBow" stroke="url(#ribbonGrad)"/>
+        <path class="stem-tails-path" id="stemTails" stroke="url(#ribbonGrad)"/>
+    </svg>
+    <div class="flower-card" id="flowerCard">
+        <div class="card-accent" id="cardAccent"></div>
+        <button class="card-close" id="cardClose">&times;</button>
+        <!-- Ribbon bow SVG -->
+        <svg class="ribbon-bow" id="ribbonBow" viewBox="0 0 28 28">
+            <path d="M14,14 C10,8 2,6 4,12 C6,16 12,14 14,14" fill="#ff4081" opacity="0.8" id="bowLeft"/>
+            <path d="M14,14 C18,8 26,6 24,12 C22,16 16,14 14,14" fill="#ff80ab" opacity="0.8" id="bowRight"/>
+            <circle cx="14" cy="14" r="3" fill="#e91e63"/>
+        </svg>
+        <!-- Flower icon decoration -->
+        <svg class="card-flower-icon" viewBox="0 0 50 50" id="cardFlowerIcon">
+            <g class="flower-icon-group" id="icon-sunflower">
+                <ellipse cx="25" cy="11" rx="4" ry="12" fill="#ffcc00" transform="rotate(0,25,25)"/>
+                <ellipse cx="25" cy="11" rx="4" ry="12" fill="#ffd740" transform="rotate(45,25,25)"/>
+                <ellipse cx="25" cy="11" rx="4" ry="12" fill="#ffcc00" transform="rotate(90,25,25)"/>
+                <ellipse cx="25" cy="11" rx="4" ry="12" fill="#ffd740" transform="rotate(135,25,25)"/>
+                <ellipse cx="25" cy="11" rx="4" ry="12" fill="#ffcc00" transform="rotate(180,25,25)"/>
+                <ellipse cx="25" cy="11" rx="4" ry="12" fill="#ffd740" transform="rotate(225,25,25)"/>
+                <ellipse cx="25" cy="11" rx="4" ry="12" fill="#ffcc00" transform="rotate(270,25,25)"/>
+                <ellipse cx="25" cy="11" rx="4" ry="12" fill="#ffd740" transform="rotate(315,25,25)"/>
+                <circle cx="25" cy="25" r="8" fill="#3e2723"/>
+            </g>
+            <g class="flower-icon-group" id="icon-lily">
+                <ellipse cx="25" cy="10" rx="5" ry="14" fill="white" opacity="0.9" transform="rotate(0,25,25)"/>
+                <ellipse cx="25" cy="10" rx="5" ry="14" fill="#fff0f5" opacity="0.85" transform="rotate(60,25,25)"/>
+                <ellipse cx="25" cy="10" rx="5" ry="14" fill="white" opacity="0.9" transform="rotate(120,25,25)"/>
+                <ellipse cx="25" cy="10" rx="5" ry="14" fill="#fff0f5" opacity="0.85" transform="rotate(180,25,25)"/>
+                <ellipse cx="25" cy="10" rx="5" ry="14" fill="white" opacity="0.9" transform="rotate(240,25,25)"/>
+                <ellipse cx="25" cy="10" rx="5" ry="14" fill="#fff0f5" opacity="0.85" transform="rotate(300,25,25)"/>
+                <circle cx="25" cy="25" r="5" fill="#ffeb3b"/>
+            </g>
+            <g class="flower-icon-group" id="icon-poppy">
+                <ellipse cx="25" cy="13" rx="11" ry="10" fill="#e53935" opacity="0.9" transform="rotate(0,25,25)"/>
+                <ellipse cx="25" cy="13" rx="11" ry="10" fill="#f44336" opacity="0.85" transform="rotate(72,25,25)"/>
+                <ellipse cx="25" cy="13" rx="11" ry="10" fill="#e53935" opacity="0.9" transform="rotate(144,25,25)"/>
+                <ellipse cx="25" cy="13" rx="11" ry="10" fill="#f44336" opacity="0.85" transform="rotate(216,25,25)"/>
+                <ellipse cx="25" cy="13" rx="11" ry="10" fill="#e53935" opacity="0.9" transform="rotate(288,25,25)"/>
+                <circle cx="25" cy="25" r="6" fill="#1a1a1a"/>
+            </g>
+            <g class="flower-icon-group" id="icon-tulip">
+                <ellipse cx="20" cy="14" rx="8" ry="18" fill="#f06292" transform="rotate(-10,25,25)"/>
+                <ellipse cx="30" cy="14" rx="8" ry="18" fill="#ec407a" transform="rotate(10,25,25)"/>
+                <ellipse cx="25" cy="15" rx="7" ry="15" fill="#f48fb1"/>
+            </g>
+            <g class="flower-icon-group" id="icon-rose">
+                <ellipse cx="25" cy="16" rx="10" ry="8" fill="#c62828" transform="rotate(0,25,23)"/>
+                <ellipse cx="25" cy="16" rx="10" ry="8" fill="#d32f2f" transform="rotate(60,25,23)"/>
+                <ellipse cx="25" cy="16" rx="10" ry="8" fill="#c62828" transform="rotate(120,25,23)"/>
+                <ellipse cx="25" cy="16" rx="10" ry="8" fill="#d32f2f" transform="rotate(180,25,23)"/>
+                <ellipse cx="25" cy="16" rx="10" ry="8" fill="#c62828" transform="rotate(240,25,23)"/>
+                <ellipse cx="25" cy="16" rx="10" ry="8" fill="#d32f2f" transform="rotate(300,25,23)"/>
+                <ellipse cx="25" cy="19" rx="6" ry="5" fill="#e53935" transform="rotate(30,25,23)"/>
+                <ellipse cx="25" cy="19" rx="6" ry="5" fill="#ef5350" transform="rotate(120,25,23)"/>
+                <circle cx="25" cy="23" r="4" fill="#b71c1c"/>
+            </g>
+        </svg>
+        <div class="card-image-wrap">
+            <div class="polaroid">
+                <div class="polaroid-tape"></div>
+                <div class="polaroid-photo">
+                    <img id="cardImg" src="" alt="">
+                    <div class="placeholder-icon" id="cardPlaceholder">
+                        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                            <rect x="3" y="3" width="18" height="18" rx="3"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <path d="M21 15l-5-5L5 21"/>
+                        </svg>
+                        <span>Photo coming soon</span>
+                    </div>
+                </div>
+                <div class="polaroid-caption" id="polaroidCaption"></div>
+                <div class="polaroid-footer" id="polaroidFooter"></div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="card-flower-name" id="cardName"></div>
+            <div class="card-meaning-label">MEANING</div>
+            <div class="card-meaning" id="cardMeaning"></div>
+            <div class="card-verse-container">
+                <div class="card-verse" id="cardVerse"></div>
+                <div class="card-verse-ref" id="cardVerseRef"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Stars
+const sc = document.getElementById('stars');
+for (let i = 0; i < 150; i++) {
+    const s = document.createElement('div');
+    s.className = 'star';
+    const sz = Math.random() * 2.5 + 0.5;
+    s.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*65}%;animation-delay:${Math.random()*4}s;animation-duration:${Math.random()*2+2}s`;
+    sc.appendChild(s);
+}
+
+// SVG Grass
+const grassG = document.getElementById('grass-group');
+for (let i = 0; i < 200; i++) {
+    const x = Math.random() * 1400;
+    const h = Math.random() * 40 + 15;
+    const curve = (Math.random() - 0.5) * 20;
+    const grass = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    grass.setAttribute('d', `M${x},700 Q${x+curve},${700-h/2} ${x+curve*0.5},${700-h}`);
+    grass.setAttribute('stroke', `hsl(${120+Math.random()*20}, ${50+Math.random()*30}%, ${25+Math.random()*20}%)`);
+    grass.setAttribute('stroke-width', Math.random() * 2 + 1);
+    grass.setAttribute('fill', 'none');
+    grass.setAttribute('stroke-linecap', 'round');
+    grass.setAttribute('opacity', Math.random() * 0.5 + 0.4);
+    grassG.appendChild(grass);
+}
+
+// Fireflies
+for (let i = 0; i < 18; i++) {
+    const f = document.createElement('div');
+    f.className = 'firefly';
+    const sz = Math.random() * 3 + 2;
+    f.style.cssText = `left:${Math.random()*90+5}%;top:${Math.random()*55+15}%;animation-delay:${Math.random()*6}s;animation-duration:${Math.random()*8+6}s,${Math.random()*2+2}s;width:${sz}px;height:${sz}px`;
+    document.body.appendChild(f);
+}
+
+// Floating hearts
+setInterval(() => {
+    const h = document.createElement('div');
+    h.className = 'floating-heart';
+    h.innerHTML = '&#10084;';
+    h.style.cssText = `left:${Math.random()*90+5}%;bottom:60px;font-size:${Math.random()*12+10}px;animation-duration:${Math.random()*4+5}s;color:hsl(${Math.random()*30+330},80%,${Math.random()*20+60}%)`;
+    document.body.appendChild(h);
+    setTimeout(() => h.remove(), 9000);
+}, 2000);
+
+// ============ FLOWER DATA ============
+const flowerData = {
+    sunflower: {
+        name: 'Sunflower',
+        color1: '#ffcc00', color2: '#ffd740',
+        image: 'images/sunflower.jpg',
+        imgPos: 'center 15%',
+        footer: '- Nagmamahal, Posang Orins',
+        meaning: 'The sunflower symbolizes adoration, loyalty, and unwavering faith. Always turning toward the light, it represents a heart that faithfully follows what is good and true — a love that never wavers.',
+        verse: '"Let us not become weary in doing good, for at the proper time we will reap a harvest if we do not give up."',
+        verseRef: '— Galatians 6:9'
+    },
+    lily: {
+        name: 'Lily',
+        color1: '#ffffff', color2: '#fff0f5',
+        image: 'images/lily.jpg',
+        imgPos: 'center 10%',
+        footer: '- Nagmamahal, Gell',
+        meaning: 'The lily represents purity, innocence, and devoted love. In its graceful beauty, it reminds us of God\'s care for all creation — how even the flowers are clothed in splendor beyond what we can imagine.',
+        verse: '"Consider how the wild flowers grow. They do not labor or spin. Yet I tell you, not even Solomon in all his splendor was dressed like one of these."',
+        verseRef: '— Luke 12:27'
+    },
+    poppy: {
+        name: 'Poppy',
+        color1: '#e53935', color2: '#ef5350',
+        image: 'images/poppy.jpg',
+        footer: '- Nagmamahal, John Angelo Vasquez',
+        meaning: 'The poppy symbolizes remembrance, comfort, and restful peace. Its bold yet delicate bloom honors those who have sacrificed, and gently whispers that true rest comes from above.',
+        verse: '"Come to me, all you who are weary and burdened, and I will give you rest."',
+        verseRef: '— Matthew 11:28'
+    },
+    tulip: {
+        name: 'Tulip',
+        color1: '#f06292', color2: '#f48fb1',
+        image: 'images/tulip.jpg',
+        footer: '- Nagmamahal, Posang Orins na Inlab sa Posang Ching!',
+        meaning: 'The tulip signifies perfect love, grace, and elegance. Its cup-shaped bloom opens with warmth, representing a love that is patient, kind, and enduring — a love that mirrors grace itself.',
+        verse: '"Love is patient, love is kind. It does not envy, it does not boast, it is not proud."',
+        verseRef: '— 1 Corinthians 13:4'
+    },
+    rose: {
+        name: 'Rose',
+        color1: '#c62828', color2: '#e53935',
+        image: 'images/rose.jpg',
+        imgPos: 'center 15%',
+        footer: '- Nagmamahal, Posang PWD',
+        meaning: 'The rose is the timeless symbol of true love, beauty, and devotion. Its layered petals speaks of a love with depth — a love rooted in the One who first loved us.',
+        verse: '"I am the rose of Sharon, and the lily of the valleys."',
+        verseRef: '— Song of Solomon 2:1'
+    }
+};
+
+// ============ OVERLAY & CARD LOGIC ============
+const overlay = document.getElementById('cardOverlay');
+const card = document.getElementById('flowerCard');
+const ribbonSvg = document.getElementById('ribbonSvg');
+const ribbonPath = document.getElementById('ribbonPath');
+const ribbonEdge = document.getElementById('ribbonEdge');
+const cardName = document.getElementById('cardName');
+const cardMeaning = document.getElementById('cardMeaning');
+const cardVerse = document.getElementById('cardVerse');
+const cardVerseRef = document.getElementById('cardVerseRef');
+const cardAccent = document.getElementById('cardAccent');
+const cardClose = document.getElementById('cardClose');
+const ribbonColor1 = document.getElementById('ribbonColor1');
+const ribbonColor2 = document.getElementById('ribbonColor2');
+const bowLeft = document.getElementById('bowLeft');
+const bowRight = document.getElementById('bowRight');
+
+let activeFlower = null;
+
+function showCard(plantEl, key) {
+    const data = flowerData[key];
+    if (!data) return;
+    activeFlower = key;
+
+    // Fill card
+    cardName.textContent = data.name;
+    cardName.style.color = data.color1;
+    cardMeaning.textContent = data.meaning;
+    cardVerse.textContent = data.verse;
+    cardVerseRef.textContent = data.verseRef;
+    cardAccent.style.background = `linear-gradient(90deg, ${data.color1}, ${data.color2})`;
+    document.getElementById('polaroidCaption').textContent = data.name;
+    document.getElementById('polaroidFooter').textContent = data.footer || '';
+
+    // Set photo
+    const img = document.getElementById('cardImg');
+    const placeholder = document.getElementById('cardPlaceholder');
+    if (data.image) {
+        img.src = data.image;
+        img.alt = data.name;
+        img.style.display = 'block';
+        img.style.objectPosition = data.imgPos || 'center 20%';
+        placeholder.style.display = 'none';
+    } else {
+        img.style.display = 'none';
+        placeholder.style.display = 'flex';
+    }
+
+    ribbonColor1.setAttribute('stop-color', data.color1);
+    ribbonColor2.setAttribute('stop-color', data.color2);
+    bowLeft.setAttribute('fill', data.color1);
+    bowRight.setAttribute('fill', data.color2);
+
+    // Show matching flower icon on card
+    document.querySelectorAll('.flower-icon-group').forEach(g => g.style.display = 'none');
+    const iconEl = document.getElementById('icon-' + key);
+    if (iconEl) iconEl.style.display = 'block';
+
+    // Position card to the opposite side of the flower
+    const plantRect = plantEl.getBoundingClientRect();
+    const plantCenterX = plantRect.left + plantRect.width / 2;
+    const screenCenterX = window.innerWidth / 2;
+    if (plantCenterX < screenCenterX) {
+        overlay.style.justifyContent = 'flex-end';
+    } else {
+        overlay.style.justifyContent = 'flex-start';
+    }
+
+    // Activate overlay
+    overlay.classList.add('active');
+
+    // Highlight the clicked plant above the overlay
+    const garden = document.querySelector('.garden');
+    document.querySelectorAll('.plant').forEach(p => p.classList.remove('highlighted'));
+    plantEl.classList.add('highlighted');
+    garden.classList.add('show-flower');
+
+    // Draw ribbon after a small delay so card position is resolved
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            drawRibbon(plantEl);
+        });
+    });
+}
+
+function hideCard() {
+    overlay.classList.remove('active');
+    ribbonPath.classList.remove('show');
+    ribbonEdge.classList.remove('show');
+    document.getElementById('stemBow').classList.remove('show');
+    document.getElementById('stemTails').classList.remove('show');
+    document.querySelectorAll('.flower-icon-group').forEach(g => g.style.display = 'none');
+
+    // Remove flower highlight
+    const garden = document.querySelector('.garden');
+    garden.classList.remove('show-flower');
+    document.querySelectorAll('.plant').forEach(p => p.classList.remove('highlighted'));
+
+    // Launch fireworks!
+    launchFireworks();
+
+    activeFlower = null;
+}
+
+function drawRibbon(plantEl) {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    ribbonSvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+
+    // Get stem tie point in screen coordinates via SVG CTM
+    const svgEl = plantEl.closest('svg');
+    const pt = svgEl.createSVGPoint();
+    pt.x = parseFloat(plantEl.dataset.tieX);
+    pt.y = parseFloat(plantEl.dataset.tieY);
+    const sp = pt.matrixTransform(svgEl.getScreenCTM());
+    const sx = sp.x, sy = sp.y;
+
+    // Card connection point (nearest edge)
+    const cardRect = card.getBoundingClientRect();
+    const cardMidX = cardRect.left + cardRect.width / 2;
+    const connectLeft = sx < cardMidX;
+    const cx = connectLeft ? cardRect.left + 6 : cardRect.right - 6;
+    const cy = cardRect.top + cardRect.height * 0.42;
+
+    // Move ribbon bow to the correct side of card
+    const rb = document.getElementById('ribbonBow');
+    if (connectLeft) {
+        rb.style.left = '-14px'; rb.style.right = 'auto';
+        rb.style.transform = 'translateY(-50%)';
+    } else {
+        rb.style.right = '-14px'; rb.style.left = 'auto';
+        rb.style.transform = 'translateY(-50%) scaleX(-1)';
+    }
+
+    // Draw small dainty bow tied around stem
+    const br = 7;
+    const stemBow = document.getElementById('stemBow');
+    stemBow.setAttribute('d',
+        `M${sx},${sy} C${sx-br*1.8},${sy-br*1.5} ${sx-br*2},${sy+br*0.3} ${sx},${sy} ` +
+        `C${sx+br*2},${sy+br*0.3} ${sx+br*1.8},${sy-br*1.5} ${sx},${sy}`
+    );
+
+    // Small ribbon tails
+    const stemTails = document.getElementById('stemTails');
+    stemTails.setAttribute('d',
+        `M${sx-1},${sy} Q${sx-6},${sy+12} ${sx-9},${sy+20} ` +
+        `M${sx+1},${sy} Q${sx+6},${sy+12} ${sx+9},${sy+20}`
+    );
+
+    // Main ribbon: smooth elegant curve from stem to card
+    const rise = Math.min(50, Math.abs(cy - sy) * 0.3 + 25);
+    const cp1x = sx + (cx - sx) * 0.25;
+    const cp1y = Math.min(sy, cy) - rise;
+    const cp2x = cx - (cx - sx) * 0.2;
+    const cp2y = cy - 15;
+    const d = `M${sx},${sy} C${cp1x},${cp1y} ${cp2x},${cp2y} ${cx},${cy}`;
+    ribbonPath.setAttribute('d', d);
+    ribbonEdge.setAttribute('d', d);
+
+    // Show all ribbon parts
+    ribbonPath.classList.add('show');
+    ribbonEdge.classList.add('show');
+    stemBow.classList.add('show');
+    stemTails.classList.add('show');
+}
+
+// Click on plants to show card
+document.querySelectorAll('.plant').forEach(pl => {
+    pl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const key = pl.getAttribute('data-flower');
+        if (key) {
+            // Burst hearts
+            const r = pl.getBoundingClientRect();
+            for (let i = 0; i < 5; i++) {
+                const h = document.createElement('div');
+                h.className = 'floating-heart';
+                h.innerHTML = '&#10084;';
+                h.style.cssText = `left:${r.left+r.width/2+(Math.random()-0.5)*80}px;bottom:${window.innerHeight-r.top+(Math.random()-0.5)*40}px;font-size:${Math.random()*14+12}px;animation-duration:${Math.random()*2+2}s;color:hsl(${Math.random()*30+330},85%,${Math.random()*20+60}%)`;
+                document.body.appendChild(h);
+                setTimeout(() => h.remove(), 5000);
+            }
+            showCard(pl, key);
+        }
+    });
+});
+
+// Close card
+cardClose.addEventListener('click', (e) => { e.stopPropagation(); hideCard(); });
+overlay.addEventListener('click', (e) => { if (e.target === overlay) hideCard(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hideCard(); });
+
+// Redraw ribbon on resize if card is open
+window.addEventListener('resize', () => {
+    if (activeFlower) {
+        const pl = document.querySelector(`[data-flower="${activeFlower}"]`);
+        if (pl) drawRibbon(pl);
+    }
+});
+
+// ============ FIREWORKS ENGINE ============
+const fwCanvas = document.getElementById('fireworksCanvas');
+const fwCtx = fwCanvas.getContext('2d');
+let fwParticles = [];
+let fwAnimId = null;
+let fwRunning = false;
+
+function resizeFwCanvas() {
+    fwCanvas.width = window.innerWidth;
+    fwCanvas.height = window.innerHeight;
+}
+resizeFwCanvas();
+window.addEventListener('resize', resizeFwCanvas);
+
+const fwColors = [
+    '#ff4081','#ff6ec7','#ffcc00','#ffd740','#00e5ff',
+    '#76ff03','#e040fb','#ff5252','#448aff','#fdd835',
+    '#69f0ae','#ff80ab','#b388ff','#f4ff81','#80d8ff'
+];
+
+// Heart shape points
+function getHeartPoints(cx, cy, size, count) {
+    const pts = [];
+    for (let i = 0; i < count; i++) {
+        const t = (i / count) * Math.PI * 2;
+        const x = 16 * Math.pow(Math.sin(t), 3);
+        const y = -(13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t));
+        pts.push({ x: cx + x * size, y: cy + y * size });
+    }
+    return pts;
+}
+
+class FWParticle {
+    constructor(x, y, color, vx, vy, size, life, trail) {
+        this.x = x; this.y = y;
+        this.color = color;
+        this.vx = vx; this.vy = vy;
+        this.size = size;
+        this.life = life;
+        this.maxLife = life;
+        this.trail = trail || false;
+        this.history = [];
+        this.gravity = 0.03;
+        this.friction = 0.98;
+    }
+    update() {
+        if (this.trail) this.history.push({ x: this.x, y: this.y });
+        if (this.history.length > 8) this.history.shift();
+        this.vx *= this.friction;
+        this.vy *= this.friction;
+        this.vy += this.gravity;
+        this.x += this.vx;
+        this.y += this.vy;
+        this.life--;
+    }
+    draw(ctx) {
+        const alpha = Math.max(this.life / this.maxLife, 0);
+        // Trail
+        if (this.trail && this.history.length > 1) {
+            ctx.beginPath();
+            ctx.moveTo(this.history[0].x, this.history[0].y);
+            for (let i = 1; i < this.history.length; i++) {
+                ctx.lineTo(this.history[i].x, this.history[i].y);
+            }
+            ctx.strokeStyle = this.color.replace(')', `,${alpha * 0.3})`);
+            ctx.lineWidth = this.size * 0.5;
+            ctx.stroke();
+        }
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size * alpha, 0, Math.PI * 2);
+        ctx.fillStyle = this.color.replace(')', `,${alpha})`);
+        ctx.fill();
+    }
+    get dead() { return this.life <= 0; }
+}
+
+function hexToRgba(hex) {
+    const r = parseInt(hex.slice(1,3),16);
+    const g = parseInt(hex.slice(3,5),16);
+    const b = parseInt(hex.slice(5,7),16);
+    return `rgba(${r},${g},${b}`;
+}
+
+function spawnBurst(x, y, color, count, speed, size) {
+    const c = hexToRgba(color);
+    for (let i = 0; i < count; i++) {
+        const angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.3;
+        const v = speed * (0.6 + Math.random() * 0.6);
+        fwParticles.push(new FWParticle(
+            x, y, c,
+            Math.cos(angle) * v, Math.sin(angle) * v,
+            size * (0.8 + Math.random() * 0.5),
+            45 + Math.random() * 25,
+            true
+        ));
+    }
+}
+
+function spawnHeartFirework(cx, cy) {
+    const pts = getHeartPoints(cx, cy, 5, 40);
+    const colors = ['#ff4081','#ff1744','#f50057','#ff80ab'];
+    pts.forEach(p => {
+        const c = hexToRgba(colors[Math.floor(Math.random() * colors.length)]);
+        fwParticles.push(new FWParticle(
+            cx, cy, c,
+            (p.x - cx) * 0.06, (p.y - cy) * 0.06,
+            2 + Math.random(),
+            55 + Math.random() * 20,
+            true
+        ));
+    });
+}
+
+function spawnRocket(targetX, targetY, color, delay) {
+    setTimeout(() => {
+        const startX = targetX + (Math.random() - 0.5) * 100;
+        const startY = fwCanvas.height + 10;
+        const steps = 30 + Math.random() * 15;
+        let step = 0;
+        const dx = (targetX - startX) / steps;
+        const dy = (targetY - startY) / steps;
+        const c = hexToRgba(color);
+        const interval = setInterval(() => {
+            const rx = startX + dx * step;
+            const ry = startY + dy * step;
+            fwParticles.push(new FWParticle(
+                rx, ry, c,
+                (Math.random()-0.5)*0.5, Math.random()*0.5,
+                1.5, 15, false
+            ));
+            step++;
+            if (step >= steps) {
+                clearInterval(interval);
+                spawnBurst(targetX, targetY, color, 25 + Math.random()*15, 2.5 + Math.random()*1.5, 2);
+            }
+        }, 16);
+    }, delay);
+}
+
+function animateFireworks() {
+    fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+    fwParticles.forEach(p => { p.update(); p.draw(fwCtx); });
+    fwParticles = fwParticles.filter(p => !p.dead);
+    if (fwParticles.length > 0 || fwRunning) {
+        fwAnimId = requestAnimationFrame(animateFireworks);
+    } else {
+        fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+        fwAnimId = null;
+    }
+}
+
+function launchFireworks() {
+    fwRunning = true;
+    if (!fwAnimId) animateFireworks();
+
+    const w = fwCanvas.width;
+    const h = fwCanvas.height;
+
+    // Random colorful bursts around the screen
+    for (let i = 0; i < 3; i++) {
+        const x = w * 0.1 + Math.random() * w * 0.8;
+        const y = h * 0.1 + Math.random() * h * 0.4;
+        const color = fwColors[Math.floor(Math.random() * fwColors.length)];
+        spawnRocket(x, y, color, i * 300 + Math.random() * 200);
+    }
+
+    // Heart-shaped firework at center with slight delay
+    setTimeout(() => {
+        spawnHeartFirework(w / 2, h * 0.38);
+    }, 600);
+
+    // Second wave
+    for (let i = 0; i < 2; i++) {
+        const x = w * 0.15 + Math.random() * w * 0.7;
+        const y = h * 0.15 + Math.random() * h * 0.35;
+        const color = fwColors[Math.floor(Math.random() * fwColors.length)];
+        spawnRocket(x, y, color, 1400 + i * 350 + Math.random() * 200);
+    }
+
+    // Stop spawning after ~2.5s
+    setTimeout(() => { fwRunning = false; }, 2500);
+}
+</script>
+</body>
+</html>
